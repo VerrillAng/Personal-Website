@@ -1,4 +1,12 @@
 .window {
-  box-shadow:
-    inset 0px 0px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.window::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
 }
