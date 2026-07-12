@@ -8,6 +8,7 @@ type Props = {
   isMaximized: boolean;
   onMaximize: () => void;
   onRestore: () => void;
+  onMinimize: () => void;
   onClose: () => void;
 };
 
@@ -19,7 +20,7 @@ function useLayer(springX: MotionValue<number>, springY: MotionValue<number>, de
   return { x, y };
 }
 
-function AboutMe({ isMaximized, onMaximize, onRestore, onClose }: Props) {
+function AboutMe({ isMaximized, onMaximize, onRestore, onMinimize, onClose }: Props) {
   const rawX = useMotionValue(0);
   const rawY = useMotionValue(0);
   const springX = useSpring(rawX, SPRING);
@@ -43,7 +44,7 @@ function AboutMe({ isMaximized, onMaximize, onRestore, onClose }: Props) {
   };
 
   return (
-    <Window isMaximized={isMaximized} onMaximize={onMaximize} onRestore={onRestore} onClose={onClose}>
+    <Window title="About Me" isMaximized={isMaximized} onMaximize={onMaximize} onRestore={onRestore} onMinimize={onMinimize} onClose={onClose}>
       <div className="h-full flex items-center justify-center">
         <div
           className={styles.parallaxPortrait}

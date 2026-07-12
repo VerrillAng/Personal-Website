@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { Rnd } from "react-rnd";
 import { ReactLenis, useLenis } from "lenis/react";
@@ -8,6 +8,7 @@ import { useWindowSize } from "../hooks/useWindowSize";
 import Laptop from "../components/laptop";
 import Home from "../components/home";
 import AboutMe from "../components/about_me";
+import Projects from "../components/projects";
 
 import { useScroll, useTransform, motion, useMotionValueEvent, animate as animateValue, useMotionValue } from "framer-motion";
 
@@ -17,23 +18,62 @@ import Picture1 from "../public/images/akaza.jpg";
 
 import styles from "./page.module.css";
 
-function Page() {
-  const lenis = useLenis((lenis) => {
-    // called every scroll
-    // console.log(lenis);
+type WindowId = "home" | "about_me" | "projects" | "skills";
+
+type WindowState = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  isOpen: boolean;
+  isMinimized: boolean;
+  isMaximized: boolean;
+  savedPos: { x: number; y: number; width: number; height: number };
+  zIndex: number;
+};
+
+const DEFAULT_SIZES: Record<WindowId, { width: number; height: number }> = {
+  home:     { width: 600, height: 400 },
+  about_me: { width: 600, height: 500 },
+  projects: { width: 700, height: 450 },
+  skills:   { width: 600, height: 400 },
+};
+
+const OFFSET_STEP = 30;
+
+function makeWindow(id: WindowId, index: number, zIndex: number): WindowState {
+  const size = DEFAULT_SIZES[id];
+  return {
+    x: 80 + index * OFFSET_STEP,
+    y: 60 + index * OFFSET_STEP,
+    width: size.width,
+    height: size.height,
+    isOpen: id === "home",
+    isMinimized: false,
+    isMaximized: false,
+    savedPos: { x: 80 + index * OFFSET_STEP, y: 60 + index * OFFSET_STEP, ...size },
+    zIndex,
+  };
+}
+
+const WINDOW_IDS: WindowId[] = ["home", "about_me", "projects", "skills"];
+
+function initialWindows(): Record<WindowId, WindowState> {
+  const result = {} as Record<WindowId, WindowState>;
+  WINDOW_IDS.forEach((id, i) => {
+    result[id] = makeWindow(id, i, id === "home" ? 1 : 0);
   });
+  return result;
+}
 
-  // Get Window Size
+function Page() {
+  const lenis = useLenis(() => {});
+
   const { width, height } = useWindowSize();
-
-  // Window state
   const containerRef = useRef<HTMLDivElement>(null);
-  const [activeWindow, setActiveWindow] = useState<string>("home");
-  const [isWindowOpen, setIsWindowOpen] = useState(true);
-  const [isMaximized, setIsMaximized] = useState(false);
+  const [windows, setWindows] = useState<Record<WindowId, WindowState>>(initialWindows);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [windowState, setWindowState] = useState({ x: 100, y: 100, width: 600, height: 400 });
-  const [savedState, setSavedState] = useState({ x: 100, y: 100, width: 600, height: 400 });
+  const topZRef = useRef(1);
 
   const animate = (fn: () => void) => {
     setIsAnimating(true);
@@ -41,27 +81,93 @@ function Page() {
     setTimeout(() => setIsAnimating(false), 300);
   };
 
-  const handleMaximize = () => {
+  const bringToFront = useCallback((id: WindowId) => {
+    topZRef.current += 1;
+    setWindows(prev => ({
+      ...prev,
+      [id]: { ...prev[id], zIndex: topZRef.current },
+    }));
+  }, []);
+
+  const openWindow = useCallback((id: WindowId) => {
+    setWindows(prev => {
+      if (prev[id].isOpen) {
+        topZRef.current += 1;
+        return { ...prev, [id]: { ...prev[id], isMinimized: false, zIndex: topZRef.current } };
+      }
+      topZRef.current += 1;
+      const size = DEFAULT_SIZES[id];
+      const openCount = Object.values(prev).filter(w => w.isOpen).length;
+      const x = 80 + openCount * OFFSET_STEP;
+      const y = 60 + openCount * OFFSET_STEP;
+      return {
+        ...prev,
+        [id]: {
+          ...prev[id],
+          isOpen: true,
+          isMinimized: false,
+          isMaximized: false,
+          x, y,
+          width: size.width,
+          height: size.height,
+          savedPos: { x, y, ...size },
+          zIndex: topZRef.current,
+        },
+      };
+    });
+  }, []);
+
+  const minimizeWindow = useCallback((id: WindowId) => {
+    setWindows(prev => ({
+      ...prev,
+      [id]: { ...prev[id], isMinimized: true },
+    }));
+  }, []);
+
+  const closeWindow = useCallback((id: WindowId) => {
+    setWindows(prev => ({
+      ...prev,
+      [id]: { ...prev[id], isOpen: false, isMinimized: false, isMaximized: false },
+    }));
+  }, []);
+
+  const maximizeWindow = useCallback((id: WindowId) => {
     if (!containerRef.current) return;
-    setSavedState(windowState);
+    const cw = containerRef.current.clientWidth;
+    const ch = containerRef.current.clientHeight;
     animate(() => {
-      setWindowState({ x: 0, y: 0, width: containerRef.current!.clientWidth, height: containerRef.current!.clientHeight });
-      setIsMaximized(true);
+      setWindows(prev => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          savedPos: { x: prev[id].x, y: prev[id].y, width: prev[id].width, height: prev[id].height },
+          x: 0, y: 0, width: cw, height: ch,
+          isMaximized: true,
+        },
+      }));
     });
-  };
+  }, []);
 
-  const handleRestore = () => {
+  const restoreWindow = useCallback((id: WindowId) => {
     animate(() => {
-      setWindowState(savedState);
-      setIsMaximized(false);
+      setWindows(prev => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          ...prev[id].savedPos,
+          isMaximized: false,
+        },
+      }));
     });
-  };
+  }, []);
 
-  const handleClose = () => {
-    setIsWindowOpen(false);
-    setIsMaximized(false);
-    setActiveWindow("");
-  };
+  const updatePosition = useCallback((id: WindowId, x: number, y: number) => {
+    setWindows(prev => ({ ...prev, [id]: { ...prev[id], x, y } }));
+  }, []);
+
+  const updateSize = useCallback((id: WindowId, x: number, y: number, w: number, h: number) => {
+    setWindows(prev => ({ ...prev, [id]: { ...prev[id], x, y, width: w, height: h } }));
+  }, []);
 
   // Framer Motion
   const container = useRef<HTMLDivElement | null>(null);
@@ -70,15 +176,11 @@ function Page() {
     offset: ["start start", "end end"],
   });
 
-  // const scale4 = useTransform(scrollYProgress, [0, 1], [1, 4]);
-
   const [scanStarted, setScanStarted] = useState(false);
   const scanProgress = useMotionValue(0);
 
-  // Phase 1–2: line grows from center outward horizontally
-  const lineScaleX   = useTransform(scanProgress, [0.05, 0.42], [0, 1]);
-  const lineOpacity  = useTransform(scanProgress, [0, 0.05, 0.42, 0.68], [0, 1, 1, 0]);
-  // Phase 3: once line is full-width, the reveal opens vertically from center
+  const lineScaleX  = useTransform(scanProgress, [0.05, 0.42], [0, 1]);
+  const lineOpacity = useTransform(scanProgress, [0, 0.05, 0.42, 0.68], [0, 1, 1, 0]);
   const clipPath = useTransform(
     scanProgress,
     [0.42, 1],
@@ -94,6 +196,14 @@ function Page() {
       scanProgress.set(0);
     }
   });
+
+  type WindowProps = { isMaximized: boolean; onMaximize: () => void; onRestore: () => void; onMinimize: () => void; onClose: () => void };
+  const CONTENT: Record<WindowId, (props: WindowProps) => React.ReactNode> = {
+    home:     (p) => <Home {...p} />,
+    about_me: (p) => <AboutMe {...p} />,
+    projects: (p) => <Projects {...p} />,
+    skills:   (p) => <div className="h-full flex items-center justify-center"><span className="text-[#76594D] text-lg font-medium">Skills</span></div>,
+  };
 
   return (
     <>
@@ -117,28 +227,40 @@ function Page() {
           >
             <div className={`flex-1 w-full rounded-2xl ${styles.window}`}>
               <div ref={containerRef} className="relative h-full w-full rounded-2xl bg-[#FBF0D9] overflow-hidden">
-                {isWindowOpen && (
-                  <Rnd
-                    size={{ width: windowState.width, height: windowState.height }}
-                    position={{ x: windowState.x, y: windowState.y }}
-                    onDragStop={(_, d) => setWindowState(s => ({ ...s, x: d.x, y: d.y }))}
-                    onResizeStop={(_, __, ref, ___, pos) => setWindowState({ x: pos.x, y: pos.y, width: ref.offsetWidth, height: ref.offsetHeight })}
-                    className={isAnimating ? styles.animating : ""}
-                    bounds="parent"
-                    dragHandleClassName="drag-handle"
-                    minWidth={300}
-                    minHeight={200}
-                    disableDragging={isMaximized}
-                    enableResizing={!isMaximized}
-                  >
-                    {activeWindow === "home" && (
-                      <Home isMaximized={isMaximized} onMaximize={handleMaximize} onRestore={handleRestore} onClose={handleClose} />
-                    )}
-                    {activeWindow === "about_me" && (
-                      <AboutMe isMaximized={isMaximized} onMaximize={handleMaximize} onRestore={handleRestore} onClose={handleClose} />
-                    )}
-                  </Rnd>
-                )}
+                {WINDOW_IDS.map((id) => {
+                  const w = windows[id];
+                  if (!w.isOpen || w.isMinimized) return null;
+
+                  const content = CONTENT[id];
+
+                  return (
+                    <Rnd
+                      key={id}
+                      size={{ width: w.width, height: w.height }}
+                      position={{ x: w.x, y: w.y }}
+                      onDragStart={() => bringToFront(id)}
+                      onDragStop={(_, d) => updatePosition(id, d.x, d.y)}
+                      onResizeStop={(_, __, ref, ___, pos) => updateSize(id, pos.x, pos.y, ref.offsetWidth, ref.offsetHeight)}
+                      className={isAnimating ? styles.animating : ""}
+                      style={{ zIndex: w.zIndex }}
+                      bounds="parent"
+                      dragHandleClassName="drag-handle"
+                      minWidth={300}
+                      minHeight={200}
+                      disableDragging={w.isMaximized}
+                      enableResizing={!w.isMaximized}
+                      onMouseDown={() => bringToFront(id)}
+                    >
+                      {content({
+                        isMaximized: w.isMaximized,
+                        onMaximize: () => maximizeWindow(id),
+                        onRestore: () => restoreWindow(id),
+                        onMinimize: () => minimizeWindow(id),
+                        onClose: () => closeWindow(id),
+                      })}
+                    </Rnd>
+                  );
+                })}
               </div>
             </div>
             <div className="h-14 flex items-center">
@@ -148,22 +270,26 @@ function Page() {
               </div>
               {/* Dock Options */}
               <div className="flex items-center gap-8 mt-1">
-                <div className="relative flex items-center justify-center w-6 h-6">
+                <button onClick={() => openWindow("home")} className={`relative flex items-center justify-center w-6 h-6 cursor-pointer ${styles.dockButton}`}>
+                  <span className={styles.dockTooltip}>Home</span>
                   <Image src="/images/dock_icons/home.svg" alt="Home" width={20} height={20} />
-                  <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#76594D] ${activeWindow === "home" ? "opacity-100" : "opacity-0"}`} />
-                </div>
-                <div className="relative flex items-center justify-center w-6 h-6">
+                  <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#76594D] ${windows.home.isOpen ? "opacity-100" : "opacity-0"}`} />
+                </button>
+                <button onClick={() => openWindow("about_me")} className={`relative flex items-center justify-center w-6 h-6 cursor-pointer ${styles.dockButton}`}>
+                  <span className={styles.dockTooltip}>About Me</span>
                   <Image src="/images/dock_icons/about_me.svg" alt="About Me" width={18} height={18} />
-                  <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#76594D] ${activeWindow === "about_me" ? "opacity-100" : "opacity-0"}`} />
-                </div>
-                <div className="relative flex items-center justify-center w-6 h-6">
+                  <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#76594D] ${windows.about_me.isOpen ? "opacity-100" : "opacity-0"}`} />
+                </button>
+                <button onClick={() => openWindow("projects")} className={`relative flex items-center justify-center w-6 h-6 cursor-pointer ${styles.dockButton}`}>
+                  <span className={styles.dockTooltip}>Projects</span>
                   <Image src="/images/dock_icons/projects.svg" alt="Projects" width={25} height={25} />
-                  <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#76594D] ${activeWindow === "projects" ? "opacity-100" : "opacity-0"}`} />
-                </div>
-                <div className="relative flex items-center justify-center w-6 h-6">
+                  <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#76594D] ${windows.projects.isOpen ? "opacity-100" : "opacity-0"}`} />
+                </button>
+                <button onClick={() => openWindow("skills")} className={`relative flex items-center justify-center w-6 h-6 cursor-pointer ${styles.dockButton}`}>
+                  <span className={styles.dockTooltip}>Skills</span>
                   <Image src="/images/dock_icons/skills.svg" alt="Skills" width={15} height={15} />
-                  <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#76594D] ${activeWindow === "skills" ? "opacity-100" : "opacity-0"}`} />
-                </div>
+                  <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#76594D] ${windows.skills.isOpen ? "opacity-100" : "opacity-0"}`} />
+                </button>
               </div>
               <div className="flex-1" />
             </div>

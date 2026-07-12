@@ -1,0 +1,59 @@
+.name {
+  font-size: clamp(1.75rem, 5vw, 3rem);
+  font-weight: 700;
+  color: #3d3226;
+  line-height: 1.1;
+}
+
+.subtitle {
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  font-weight: 500;
+  color: #5c4a3a;
+}
+
+.tagline {
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  font-weight: 400;
+  font-style: italic;
+  color: #8a7560;
+}
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #FFF7E7;
+  color: #5c4a3a;
+  box-shadow:
+    6px 6px 12px rgba(180, 160, 130, 0.35),
+    -6px -6px 12px rgba(255, 255, 255, 0.8);
+  transition: color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  outline: none;
+  border: none;
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  color: #c0663f;
+  transform: translateY(-2px);
+  box-shadow:
+    8px 8px 16px rgba(180, 160, 130, 0.4),
+    -8px -8px 16px rgba(255, 255, 255, 0.85);
+}
+
+.iconButton:active {
+  transform: translateY(0);
+  box-shadow:
+    inset 4px 4px 8px rgba(180, 160, 130, 0.35),
+    inset -4px -4px 8px rgba(255, 255, 255, 0.8);
+}
+
+.iconButton:focus-visible {
+  box-shadow:
+    6px 6px 12px rgba(180, 160, 130, 0.35),
+    -6px -6px 12px rgba(255, 255, 255, 0.8),
+    0 0 0 3px #c0663f;
+}
