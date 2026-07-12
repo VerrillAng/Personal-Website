@@ -1,0 +1,117 @@
+.parallaxPortrait {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  aspect-ratio: 400 / 537;
+}
+
+.parallaxPortrait > * {
+  position: absolute;
+  will-change: transform;
+}
+
+.ppGrid {
+  inset: -6%;
+  background: radial-gradient(rgba(118, 89, 77, 0.18) 1px, transparent 1.5px) 0 0 / 14px 14px;
+  border-radius: 36px;
+  opacity: 0.55;
+}
+
+.ppBacking {
+  inset: 4% 6% 4% -2%;
+  background: #F7E4BC;
+  border: 1.5px solid #76594D;
+  border-radius: 32px;
+  box-shadow: 0 6px 0 rgba(118, 89, 77, 0.18);
+}
+
+.ppPortrait {
+  inset: 2% 2% 2% 4%;
+  border-radius: 36px;
+  background: #efe8d6 url("/images/potrait.jpeg") center 22% / cover;
+  border: 1.5px solid #76594D;
+  box-shadow: 0 8px 0 rgba(118, 89, 77, 0.22), 0 14px 24px rgba(0, 0, 0, 0.18);
+}
+
+.ppSticky {
+  left: -6%;
+  bottom: 6%;
+  width: 38%;
+  aspect-ratio: 1.05 / 1;
+  background: #FFE9A8;
+  border: 1.5px solid #76594D;
+  border-radius: 6px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 6px 0 #DBBA60, 0 12px 18px rgba(0, 0, 0, 0.14);
+}
+
+.ppStickyDoodle {
+  width: 28px;
+  height: 28px;
+  border: 1.8px solid #000;
+  border-radius: 50%;
+  position: relative;
+}
+.ppStickyDoodle::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 7px;
+  height: 2px;
+  border-radius: 0 0 12px 12px;
+  border-bottom: 2px solid #000;
+}
+.ppStickyDoodle::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 7px;
+  width: 3px;
+  height: 3px;
+  background: #000;
+  border-radius: 50%;
+  box-shadow: 11px 0 0 0 #000;
+}
+
+.ppStickyLine {
+  height: 4px;
+  width: 78%;
+  background: #000;
+  opacity: 0.55;
+  border-radius: 2px;
+}
+.short {
+  width: 52%;
+}
+
+.ppTag {
+  top: 2%;
+  right: -8%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 22px;
+  background: #FBF0D9;
+  border: 1.5px solid #76594D;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #000;
+  box-shadow: 0 4px 0 rgba(118, 89, 77, 0.22);
+}
+
+.ppTagHole {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #F7E4BC;
+  border: 1.5px solid #76594D;
+}

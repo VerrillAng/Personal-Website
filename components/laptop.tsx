@@ -43,7 +43,8 @@ function Laptop({ width, height }: Props) {
   return (
     // <div className="fixed inset-0">
     <Spline
-      scene="https://prod.spline.design/rMI-jQtPNugVMEdx/scene.splinecode"
+      // scene="https://prod.spline.design/rMI-jQtPNugVMEdx/scene.splinecode"
+      scene="https://prod.spline.design/KfRT2LvczyPXYDkH/scene.splinecode"
       onLoad={onLoad}
       // style={{ width: "100%", height: "100%" }}
     />

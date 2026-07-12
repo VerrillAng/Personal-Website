@@ -1,0 +1,23 @@
+.window {
+    position: relative;
+  }
+
+.window::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+.animating {
+  transition: transform 0.3s ease, width 0.3s ease, height 0.3s ease;
+}
+
+.dockLabel {
+  font-family: var(--font-inter);
+  font-weight: 600;
+  color: #76594D;
+  font-size: 12px;
+}
