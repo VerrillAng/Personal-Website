@@ -9,6 +9,7 @@ import Laptop from "../components/laptop";
 import Home from "../components/home";
 import AboutMe from "../components/about_me";
 import Projects from "../components/projects";
+import StartMenu from "../components/start_menu";
 
 import { useScroll, useTransform, motion, useMotionValueEvent, animate as animateValue, useMotionValue } from "framer-motion";
 
@@ -161,6 +162,16 @@ function Page() {
     });
   }, []);
 
+  const closeAllWindows = useCallback(() => {
+    setWindows(prev => {
+      const next = { ...prev };
+      for (const id of WINDOW_IDS) {
+        next[id] = { ...next[id], isOpen: false, isMinimized: false, isMaximized: false };
+      }
+      return next;
+    });
+  }, []);
+
   const updatePosition = useCallback((id: WindowId, x: number, y: number) => {
     setWindows(prev => ({ ...prev, [id]: { ...prev[id], x, y } }));
   }, []);
@@ -264,9 +275,9 @@ function Page() {
               </div>
             </div>
             <div className="h-14 flex items-center">
-              {/* Logo */}
+              {/* Start Menu */}
               <div className="flex-1 flex items-center pl-3">
-                <Image src="/images/Logo_Brown.svg" alt="Logo" width={40} height={40} />
+                <StartMenu onShutDown={closeAllWindows} />
               </div>
               {/* Dock Options */}
               <div className="flex items-center gap-8 mt-1">

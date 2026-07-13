@@ -30,7 +30,7 @@ function Window({ title, isMaximized, onMaximize, onRestore, onMinimize, onClose
           </button>
         </div>
       </div>
-      <div className="flex-1 bg-[#FFF7E7] rounded-b-2xl overflow-hidden">
+      <div className="flex-1 min-h-0 bg-[#FFF7E7] rounded-b-2xl">
         {children}
       </div>
     </div>

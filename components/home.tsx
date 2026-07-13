@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { motion } from "framer-motion";
 import Window from "./window";
+import SocialLinks from "./social_links";
 import styles from "./home.module.css";
 
 type Props = {
@@ -12,12 +12,6 @@ type Props = {
   onMinimize: () => void;
   onClose: () => void;
 };
-
-const LINKS = [
-  { href: "https://github.com/VerrillAng", label: "GitHub profile", icon: "/images/windows/home/gitHub-icon.svg", size: 24 },
-  { href: "https://www.linkedin.com/in/verrillangelo/", label: "LinkedIn profile", icon: "/images/windows/home/linkedIn-icon.svg", size: 24 },
-  { href: "mailto:verrill.ang@gmail.com", label: "Email me", icon: "/images/windows/home/mail-icon.svg", size: 35 },
-];
 
 function Home({ isMaximized, onMaximize, onRestore, onMinimize, onClose }: Props) {
   return (
@@ -35,20 +29,7 @@ function Home({ isMaximized, onMaximize, onRestore, onMinimize, onClose }: Props
             <p className={styles.tagline}>Software by day, hardware by... also day.</p>
           </div>
 
-          <div className="flex items-center gap-5">
-            {LINKS.map(({ href, label, icon, size }) => (
-              <a
-                key={label}
-                href={href}
-                target={href.startsWith("mailto") ? undefined : "_blank"}
-                rel={href.startsWith("mailto") ? undefined : "noopener noreferrer"}
-                aria-label={label}
-                className={styles.iconButton}
-              >
-                <Image src={icon} alt="" width={size} height={size} />
-              </a>
-            ))}
-          </div>
+          <SocialLinks />
         </motion.div>
       </div>
     </Window>
