@@ -19,7 +19,7 @@ import Picture1 from "../public/images/akaza.jpg";
 
 import styles from "./page.module.css";
 
-type WindowId = "home" | "about_me" | "projects" | "skills";
+type WindowId = "home" | "about_me" | "projects";
 
 type WindowState = {
   x: number;
@@ -36,8 +36,7 @@ type WindowState = {
 const DEFAULT_SIZES: Record<WindowId, { width: number; height: number }> = {
   home:     { width: 600, height: 400 },
   about_me: { width: 600, height: 500 },
-  projects: { width: 700, height: 450 },
-  skills:   { width: 600, height: 400 },
+  projects: { width: 850, height: 550 },
 };
 
 const OFFSET_STEP = 30;
@@ -57,7 +56,7 @@ function makeWindow(id: WindowId, index: number, zIndex: number): WindowState {
   };
 }
 
-const WINDOW_IDS: WindowId[] = ["home", "about_me", "projects", "skills"];
+const WINDOW_IDS: WindowId[] = ["home", "about_me", "projects"];
 
 function initialWindows(): Record<WindowId, WindowState> {
   const result = {} as Record<WindowId, WindowState>;
@@ -68,7 +67,8 @@ function initialWindows(): Record<WindowId, WindowState> {
 }
 
 function Page() {
-  const lenis = useLenis(() => {});
+  const lenisRef = useRef<ReturnType<typeof useLenis>>(null);
+  useLenis((l) => { lenisRef.current = l; });
 
   const { width, height } = useWindowSize();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -162,16 +162,6 @@ function Page() {
     });
   }, []);
 
-  const closeAllWindows = useCallback(() => {
-    setWindows(prev => {
-      const next = { ...prev };
-      for (const id of WINDOW_IDS) {
-        next[id] = { ...next[id], isOpen: false, isMinimized: false, isMaximized: false };
-      }
-      return next;
-    });
-  }, []);
-
   const updatePosition = useCallback((id: WindowId, x: number, y: number) => {
     setWindows(prev => ({ ...prev, [id]: { ...prev[id], x, y } }));
   }, []);
@@ -190,6 +180,20 @@ function Page() {
   const [scanStarted, setScanStarted] = useState(false);
   const scanProgress = useMotionValue(0);
 
+  const shutDown = useCallback(() => {
+    setWindows(prev => {
+      const next = { ...prev };
+      for (const id of WINDOW_IDS) {
+        next[id] = { ...next[id], isOpen: false, isMinimized: false, isMaximized: false };
+      }
+      return next;
+    });
+    setDesktopRevealed(false);
+    setScanStarted(false);
+    scanProgress.set(0);
+    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+  }, [scanProgress]);
+
   const lineScaleX  = useTransform(scanProgress, [0.05, 0.42], [0, 1]);
   const lineOpacity = useTransform(scanProgress, [0, 0.05, 0.42, 0.68], [0, 1, 1, 0]);
   const clipPath = useTransform(
@@ -198,10 +202,17 @@ function Page() {
     ["inset(50% 0% 50% 0%)", "inset(0% 0% 0% 0%)"]
   );
 
+  const [desktopRevealed, setDesktopRevealed] = useState(false);
+
   useMotionValueEvent(scrollYProgress, "change", (v) => {
+    if (desktopRevealed) return;
     if (v >= 0.98 && !scanStarted) {
       setScanStarted(true);
-      animateValue(scanProgress, 1, { duration: 1.0, ease: [0.16, 1, 0.3, 1] });
+      animateValue(scanProgress, 1, {
+        duration: 1.0,
+        ease: [0.16, 1, 0.3, 1],
+        onComplete: () => setDesktopRevealed(true),
+      });
     } else if (v < 0.9) {
       setScanStarted(false);
       scanProgress.set(0);
@@ -213,7 +224,6 @@ function Page() {
     home:     (p) => <Home {...p} />,
     about_me: (p) => <AboutMe {...p} />,
     projects: (p) => <Projects {...p} />,
-    skills:   (p) => <div className="h-full flex items-center justify-center"><span className="text-[#76594D] text-lg font-medium">Skills</span></div>,
   };
 
   return (
@@ -233,8 +243,12 @@ function Page() {
           <Laptop width={width} height={height}></Laptop>
           {/* Portfolio — revealed by scanline clip-path */}
           <motion.div
-            style={{ clipPath }}
-            className="absolute inset-0 z-10 flex flex-col bg-[#F9EFDD] px-4 pt-4"
+            data-lenis-prevent
+            style={desktopRevealed ? undefined : { clipPath }}
+            className={desktopRevealed
+              ? "fixed inset-0 z-10 flex flex-col bg-[#F9EFDD] px-4 pt-4"
+              : "absolute inset-0 z-10 flex flex-col bg-[#F9EFDD] px-4 pt-4"
+            }
           >
             <div className={`flex-1 w-full rounded-2xl ${styles.window}`}>
               <div ref={containerRef} className="relative h-full w-full rounded-2xl bg-[#FBF0D9] overflow-hidden">
@@ -277,7 +291,7 @@ function Page() {
             <div className="h-14 flex items-center">
               {/* Start Menu */}
               <div className="flex-1 flex items-center pl-3">
-                <StartMenu onShutDown={closeAllWindows} />
+                <StartMenu onShutDown={shutDown} />
               </div>
               {/* Dock Options */}
               <div className="flex items-center gap-8 mt-1">
@@ -295,11 +309,6 @@ function Page() {
                   <span className={styles.dockTooltip}>Projects</span>
                   <Image src="/images/dock_icons/projects.svg" alt="Projects" width={25} height={25} />
                   <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#76594D] ${windows.projects.isOpen ? "opacity-100" : "opacity-0"}`} />
-                </button>
-                <button onClick={() => openWindow("skills")} className={`relative flex items-center justify-center w-6 h-6 cursor-pointer ${styles.dockButton}`}>
-                  <span className={styles.dockTooltip}>Skills</span>
-                  <Image src="/images/dock_icons/skills.svg" alt="Skills" width={15} height={15} />
-                  <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#76594D] ${windows.skills.isOpen ? "opacity-100" : "opacity-0"}`} />
                 </button>
               </div>
               <div className="flex-1" />

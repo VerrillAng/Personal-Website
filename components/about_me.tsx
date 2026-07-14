@@ -13,8 +13,13 @@ type Props = {
   onClose: () => void;
 };
 
-const SOFTWARE_TOOLS = ["TypeScript", "React", "Next.js", "Python", "Node.js", "Git", "Figma"];
-const HARDWARE_TOOLS = ["Arduino", "Raspberry Pi", "Soldering", "3D Printing"];
+const SKILLS: Record<string, string[]> = {
+  Languages: ["Kotlin", "Python", "Java", "TypeScript", "JavaScript", "Swift", "C", "C++", "SQL", "HTML", "CSS"],
+  "Front-end": ["React Native", "React", "Next.js", "Tailwind", "Bootstrap"],
+  "Back-end": ["Flask", "FastAPI", "REST APIs", "PostgreSQL", "MySQL", "MongoDB", "Docker", "AWS"],
+  "Data Science & ML": ["Apache Spark", "TensorFlow", "Pandas", "NumPy", "Matplotlib", "Scikit-learn", "OpenCV"],
+  Tools: ["Jenkins", "GitLab CI/CD", "Selenium", "Pytest", "Postman", "LambdaTest", "TestRail", "Sentry", "Charles"],
+};
 
 const SPRING = { stiffness: 120, damping: 18, mass: 0.8 };
 
@@ -55,7 +60,7 @@ function AboutMe({ isMaximized, onMaximize, onRestore, onMinimize, onClose }: Pr
 
   return (
     <Window title="About Me" isMaximized={isMaximized} onMaximize={onMaximize} onRestore={onRestore} onMinimize={onMinimize} onClose={onClose}>
-      <div className={styles.scrollArea} data-lenis-prevent>
+      <div className={styles.scrollArea}>
         <div className="flex flex-col gap-6">
 
           {/* Top row: portrait left, greeting center */}
@@ -66,7 +71,6 @@ function AboutMe({ isMaximized, onMaximize, onRestore, onMinimize, onClose }: Pr
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
             >
-              <motion.div className={styles.ppGrid}    style={grid} />
               <motion.div className={styles.ppBacking} style={{ ...backing, rotate: -3.5 }} />
               <motion.div className={styles.ppPortrait} style={portrait} />
               <motion.div className={styles.ppSticky}   style={{ ...sticky, rotate: -7 }}>
@@ -105,18 +109,14 @@ function AboutMe({ isMaximized, onMaximize, onRestore, onMinimize, onClose }: Pr
           <motion.div className={styles.card} {...fadeUp(0.12)}>
             <h3 className={styles.sectionHeading}>Toolbox</h3>
             <div className="flex flex-col gap-3">
-              <div>
-                <p className={styles.pillLabel}>Software</p>
-                <div className={styles.pillGroup}>
-                  {SOFTWARE_TOOLS.map((t) => <span key={t} className={styles.pill}>{t}</span>)}
+              {Object.entries(SKILLS).map(([category, items]) => (
+                <div key={category}>
+                  <p className={styles.pillLabel}>{category}</p>
+                  <div className={styles.pillGroup}>
+                    {items.map((t) => <span key={t} className={styles.pill}>{t}</span>)}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <p className={styles.pillLabel}>Hardware</p>
-                <div className={styles.pillGroup}>
-                  {HARDWARE_TOOLS.map((t) => <span key={t} className={styles.pill}>{t}</span>)}
-                </div>
-              </div>
+              ))}
             </div>
           </motion.div>
 

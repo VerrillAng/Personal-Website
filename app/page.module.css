@@ -9,6 +9,7 @@
   border-radius: inherit;
   box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.3);
   pointer-events: none;
+  z-index: 9998;
 }
 
 .animating {
@@ -38,6 +39,7 @@
   white-space: nowrap;
   border-radius: 6px;
   pointer-events: none;
+  z-index: 9999;
   transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
 }
 
