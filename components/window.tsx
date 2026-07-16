@@ -24,7 +24,7 @@ function Window({ title, headerLeft, isMaximized, onMaximize, onRestore, onMinim
             <Image src="/images/control_buttons/minimize.svg" alt="Minimize" width={12} height={12} />
           </button>
           <button className="w-6 h-4 flex items-center justify-center hover:opacity-70 transition-opacity" onClick={isMaximized ? onRestore : onMaximize}>
-            <Image src={isMaximized ? "/images/control_buttons/restore.svg" : "/images/control_buttons/Maximize.svg"} alt={isMaximized ? "Restore" : "Maximize"} width={12} height={12} />
+            <Image src={isMaximized ? "/images/control_buttons/restore.svg" : "/images/control_buttons/maximize.svg"} alt={isMaximized ? "Restore" : "Maximize"} width={12} height={12} />
           </button>
           <button className="w-6 h-4 flex items-center justify-center hover:opacity-70 transition-opacity" onClick={onClose}>
             <Image src="/images/control_buttons/close.svg" alt="Close" width={12} height={12} />
